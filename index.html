@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/logo-yapper-sm.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="YapperApp - Connect, share, and engage with communities. Join discussions, create your own spaces, and express yourself freely."
+    />
+    <link rel="apple-touch-icon" href="/logo-yapper-sm.jpg" />
+
+    <!-- Open Graph / Facebook Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://yapperapp.com/" />
+    <meta property="og:title" content="YapperApp - Community Engagement Platform" />
+    <meta property="og:description" content="Connect, share, and engage with communities. Join discussions, create your own spaces, and express yourself freely." />
+    <meta property="og:image" content="/logo-yapper-sm.jpg" />
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://yapperapp.com/" />
+    <meta name="twitter:title" content="YapperApp - Community Engagement Platform" />
+    <meta name="twitter:description" content="Connect, share, and engage with communities. Join discussions, create your own spaces, and express yourself freely." />
+    <meta name="twitter:image" content="/logo-yapper-sm.jpg" />
+
+    <link rel="manifest" href="/manifest.json" />
+    <title>YapperApp - Connect and Engage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;300;400;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('Service Worker registered:', registration);
+            })
+            .catch(error => {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
