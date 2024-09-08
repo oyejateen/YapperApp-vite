@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from './Navbar';
 import { useGoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../contexts/AuthContext';
 
 function Signup() {
   const [username, setUsername] = useState('');
@@ -14,7 +15,7 @@ function Signup() {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
-
+  const { login } = useAuth();
   const handleGoogleSignup = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -86,6 +87,7 @@ function Signup() {
       });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userId', response.data.user._id);
+      await login(response.data.user);
       navigate('/dashboard');
     } catch (err) {
       if (err.response && err.response.data) {
@@ -97,6 +99,7 @@ function Signup() {
       } else {
         setError('An unexpected error occurred. Please try again.');
       }
+    } finally {
       setIsLoading(false);
     }
   };

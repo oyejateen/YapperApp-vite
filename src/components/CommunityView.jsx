@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -27,6 +27,44 @@ function CommunityView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('posts');
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const newSocket = io(`${import.meta.env.VITE_SERVER_URL}`);
+    setSocket(newSocket);
+
+    return () => newSocket.close();
+  }, []);
+
+  useEffect(() => {
+    if (socket == null) return;
+
+    socket.emit('joinCommunity', id);
+
+    socket.on('postCreated', handlePostCreated);
+    socket.on('postUpdated', handlePostUpdated);
+    socket.on('postDeleted', handlePostDeleted);
+
+    return () => {
+      socket.off('postCreated', handlePostCreated);
+      socket.off('postUpdated', handlePostUpdated);
+      socket.off('postDeleted', handlePostDeleted);
+    };
+  }, [socket, id]);
+
+  const handlePostCreated = useCallback((newPost) => {
+    setPosts((prevPosts) => [newPost, ...prevPosts]);
+  }, []);
+
+  const handlePostUpdated = useCallback((updatedPost) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => (post._id === updatedPost._id ? updatedPost : post))
+    );
+  }, []);
+
+  const handlePostDeleted = useCallback((deletedPostId) => {
+    setPosts((prevPosts) => prevPosts.filter((post) => post._id !== deletedPostId));
+  }, []);
 
   useEffect(() => {
     const fetchCommunity = async () => {
@@ -76,9 +114,9 @@ function CommunityView() {
         },
       });
       console.log('New post created:', response.data);
+      // The socket will handle adding the new post to the state
       setNewPost({ title: '', content: '', isAnonymous: false, media: null, postType: 'text' });
       setShowCreatePost(false);
-      window.location.reload();
     } catch (err) {
       console.error('Error creating post:', err);
       setError('Failed to create post: ' + (err.response?.data?.message || err.message));
@@ -485,6 +523,7 @@ function CommunityView() {
                         deletePost={deletePost} 
                         isAdmin={isAdmin} 
                         isAuthor={post.author && post.author._id === userId} 
+                        isViewingIndividualPost={false}
                       />
                     ))
                 ) : (

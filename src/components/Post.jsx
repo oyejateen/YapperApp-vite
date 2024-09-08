@@ -7,15 +7,16 @@ import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
-function Post({ post, updatePost, deletePost, isAdmin }) {
+function Post({ post, updatePost, deletePost, isAdmin, isViewingIndividualPost = false }) {
   const [isLiked, setIsLiked] = useState(post.likedBy.includes(localStorage.getItem('userId')));
   const [isDisliked, setIsDisliked] = useState(post.dislikedBy.includes(localStorage.getItem('userId')));
+  const [currentPost, setCurrentPost] = useState(post);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isAuthor = post.author && localStorage.getItem('userId') === post.author._id;
-  const authorName = post.isAnonymous ? 'Anonymous' : (post.author ? post.author.username : 'Unknown');
+  const isAuthor = currentPost.author && localStorage.getItem('userId') === currentPost.author._id;
+  const authorName = currentPost.isAnonymous ? 'Anonymous' : (currentPost.author ? currentPost.author.username : 'Unknown');
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(post.title);
@@ -25,18 +26,18 @@ function Post({ post, updatePost, deletePost, isAdmin }) {
     e.stopPropagation();
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/post/${post._id}/like`, {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/post/${currentPost._id}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      setIsLiked(!isLiked);
-      setIsDisliked(false);
-      if (updatePost) {
-        updatePost(response.data);
+      const updatedPost = response.data;
+      setIsLiked(updatedPost.likedBy.includes(localStorage.getItem('userId')));
+      setIsDisliked(updatedPost.dislikedBy.includes(localStorage.getItem('userId')));
+      setCurrentPost(updatedPost);
+      if (updatePost && !isViewingIndividualPost) {
+        updatePost(updatedPost);
       }
-    } catch (error) {
-      console.error('Error liking post:', error);
+    } catch (err) {
+      console.error('Error liking post:', err);
     }
   };
 
@@ -44,18 +45,18 @@ function Post({ post, updatePost, deletePost, isAdmin }) {
     e.stopPropagation();
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/post/${post._id}/dislike`, {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/post/${currentPost._id}/dislike`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      setIsDisliked(!isDisliked);
-      setIsLiked(false);
-      if (updatePost) {
-        updatePost(response.data);
+      const updatedPost = response.data;
+      setIsLiked(updatedPost.likedBy.includes(localStorage.getItem('userId')));
+      setIsDisliked(updatedPost.dislikedBy.includes(localStorage.getItem('userId')));
+      setCurrentPost(updatedPost);
+      if (updatePost && !isViewingIndividualPost) {
+        updatePost(updatedPost);
       }
-    } catch (error) {
-      console.error('Error disliking post:', error);
+    } catch (err) {
+      console.error('Error disliking post:', err);
     }
   };
 

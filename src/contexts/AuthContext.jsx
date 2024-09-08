@@ -12,61 +12,42 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
     if (token && userId) {
-      axios.get(`${import.meta.env.VITE_SERVER_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(response => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setCurrentUser(response.data);
-        setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('Error fetching current user:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
-        setLoading(false);
-      });
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const login = async (emailOrUsername, password) => {
-    try {
-      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/auth/login`, { emailOrUsername, password });
-      if (response.data && response.data.token && response.data.user) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userId', response.data.user._id);
-        setCurrentUser(response.data.user);
-        return response.data;
-      } else {
-        throw new Error('Invalid response from server');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
     }
+    setLoading(false);
   };
 
-  const signup = async (username, email, password) => {
-    const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/auth/signup`, { username, email, password });
-    localStorage.setItem('token', response.data.token);
-    setCurrentUser(response.data.user);
+  const login = async (user) => {
+    setCurrentUser(user);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     setCurrentUser(null);
   };
 
   const value = {
     currentUser,
-    setCurrentUser,
     login,
-    signup,
-    logout
+    logout,
+    checkUser
   };
 
   return (

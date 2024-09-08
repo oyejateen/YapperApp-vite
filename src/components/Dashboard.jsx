@@ -19,8 +19,14 @@ function Dashboard() {
 
   useEffect(() => {
     const checkNotificationPermission = async () => {
-      if ('Notification' in window && Notification.permission !== 'granted') {
-        setShowNotificationCarousel(true);
+      console.log('Checking notification permission');
+      if ('Notification' in window) {
+        console.log('Current permission:', Notification.permission);
+        if (Notification.permission !== 'granted') {
+          setShowNotificationCarousel(true);
+        }
+      } else {
+        console.log('Notifications not supported in this browser');
       }
     };
     checkNotificationPermission();
@@ -29,11 +35,12 @@ function Dashboard() {
   const requestNotificationPermission = async () => {
     if ('Notification' in window) {
       try {
+        console.log('Requesting notification permission');
         const permission = await Notification.requestPermission();
+        console.log('Permission result:', permission);
         if (permission === 'granted') {
           console.log('Notification permission granted');
           setShowNotificationCarousel(false);
-          // Subscribe the user to push notifications
           await subscribeToPushNotifications();
         } else {
           console.log('Notification permission denied');
@@ -47,16 +54,23 @@ function Dashboard() {
 
   const subscribeToPushNotifications = async () => {
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
-      });
-      
-      // Send the subscription to your server
-      await sendSubscriptionToServer(subscription);
-      
-      console.log('User is subscribed to push notifications');
+      console.log('Subscribing to push notifications');
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        console.log('Service Worker registered');
+
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+        });
+        console.log('Push subscription created:', subscription);
+        
+        await sendSubscriptionToServer(subscription);
+        
+        console.log('User is subscribed to push notifications');
+      } else {
+        console.log('Service workers are not supported in this browser');
+      }
     } catch (error) {
       console.error('Failed to subscribe the user: ', error);
     }
@@ -65,13 +79,15 @@ function Dashboard() {
   const sendSubscriptionToServer = async (subscription) => {
     const token = localStorage.getItem('token');
     try {
-      await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/notifications/subscribe`, 
+      console.log('Sending subscription to server');
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/notifications/subscribe`, 
         { subscription },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log('Server response:', response.data);
       console.log('Subscription sent to server successfully');
     } catch (error) {
-      console.error('Error sending subscription to server:', error);
+      console.error('Error sending subscription to server:', error.response ? error.response.data : error);
     }
   };
 

@@ -12,6 +12,7 @@ function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const validateInputs = () => {
     if (!emailOrUsername.trim()) {
@@ -38,10 +39,15 @@ function Login() {
       });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userId', response.data.user._id);
+      await login(response.data.user);
       navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Failed to log in. Please check your credentials and try again.');
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Failed to log in. Please check your credentials and try again.');
+      }
     } finally {
       setIsLoading(false);
     }
