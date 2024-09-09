@@ -122,12 +122,6 @@ function Login() {
             <span className="flex-shrink mx-4 text-gray-600">OR</span>
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full bg-white text-gray-700 font-bold py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 transition duration-300"
-          >
-            Login with Google
-          </button>
           <p className="mt-4 text-center text-gray-600">
             Don't have an account?{' '}
             <Link to="/signup" className="text-caribbean-green hover:underline">
